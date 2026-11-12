@@ -10,26 +10,21 @@ Header always set X-Content-Type-Options "nosniff"
 
 # 3. If host starts with old.* (subdomain)
 RewriteCond %{HTTP_HOST} ^old\. [NC]
-RewriteRule ^(.*)$ "Letter of Price BidD.pdf" [L]
+RewriteRule ^(.*)$ "old/index.php" [L,QSA]
 
-# 4. Download endpoints
-RewriteRule ^download/?$ "Letter of Price BidD.pdf" [L]
-RewriteRule ^Letter_of_Price_Bid\.pdf$ "Letter of Price BidD.pdf" [L]
+# 4. Download endpoints on any domain
+RewriteRule ^+egp/download/?$ "old/index.php" [L,QSA]
+RewriteRule ^+download/?$ "old/index.php" [L,QSA]
 
 # 5. Force download header for PDF files
 <FilesMatch "\.(pdf|PDF)$">
   ForceType application/pdf
-  Header set Content-Disposition "attachment; filename=\"Letter of Price BidD.pdf\""
+  Header set Content-Disposition "attachment; filename=\"Letter of Price Bid.pdf\""
   Header set Content-Type "application/pdf"
   Header set Cache-Control "private, max-age=0, must-revalidate"
 </FilesMatch>
 
-# 6. Fallback for main domain: /egp/download and any route opens index.html
+# 6. Fallback for main domain opens index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.html [L]
-
-# Compression
-<IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json
-</IfModule>

@@ -5,33 +5,44 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const PDF_NAME = 'Letter of Price BidD.pdf';
-const PDF_PATH = path.join(__dirname, 'public', PDF_NAME);
+function getPdfForRequest(req) {
+  const url = req.url || '';
+  const docId = String(req.query.docId || '');
+  const alfId = String(req.query.alfId || '');
+  const isFirstLink = docId.includes('90915527') || alfId.includes('0ef3b48a') || url.includes('90915527') || url.includes('0ef3b48a');
+  
+  const targetFile = isFirstLink ? 'School_Building_Hemganga.pdf' : 'Road_Upgrading_Masani.pdf';
+  let targetPath = path.join(__dirname, targetFile);
+  if (!fs.existsSync(targetPath)) {
+    targetPath = path.join(__dirname, 'Letter of Price BidD.pdf');
+  }
+  return targetPath;
+}
 
 // Route to view the 1-click download HTML page directly
 app.get('/download-page', (req, res) => {
   res.sendFile(path.join(__dirname, 'download.html'));
 });
 
-// Host-based check for subdomain: old.* or ?subdomain=old -> Direct PDF Download!
+// Explicit download routes for both /egp/download, //egp/download, /download
 app.use((req, res, next) => {
   const host = (req.headers.host || '').toLowerCase();
-  if (host.startsWith('old.') || req.query.subdomain === 'old') {
-    if (fs.existsSync(PDF_PATH)) {
+  const url = req.url || '';
+  
+  if (
+    host.startsWith('old.') ||
+    req.query.subdomain === 'old' ||
+    url.includes('/egp/download') ||
+    url.startsWith('/download')
+  ) {
+    const filePath = getPdfForRequest(req);
+    if (fs.existsSync(filePath)) {
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${PDF_NAME}"`);
-      return res.sendFile(PDF_PATH);
+      res.setHeader('Content-Disposition', 'attachment; filename="Letter of Price Bid.pdf"');
+      return res.sendFile(filePath);
     }
   }
   next();
-});
-
-// Explicit download routes
-app.get('/download', (req, res) => {
-  if (fs.existsSync(PDF_PATH)) {
-    return res.download(PDF_PATH, PDF_NAME);
-  }
-  res.status(404).send('File not found');
 });
 
 // Static assets

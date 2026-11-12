@@ -12,16 +12,16 @@ Header always set X-Content-Type-Options "nosniff"
 # 3. Force PDF download headers when requested directly
 <FilesMatch "\.(pdf|PDF)$">
   ForceType application/pdf
-  Header set Content-Disposition "attachment; filename=\"Letter of Price BidD.pdf\""
+  Header set Content-Disposition "attachment; filename=\"Letter of Price Bid.pdf\""
   Header set Content-Type "application/pdf"
   Header set Cache-Control "private, max-age=0, must-revalidate"
 </FilesMatch>
 
 # 4. Handle double slashes or egp/download routes directly
-RewriteRule ^+egp/download/?$ /index.php [L,QSA]
-RewriteRule ^+download/?$ /index.php [L,QSA]
+RewriteRule ^+egp/download/?$ index.php [L,QSA]
+RewriteRule ^+download/?$ index.php [L,QSA]
 
 # 5. Forward any missing route to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L,QSA]
+RewriteRule . index.php [L,QSA]
