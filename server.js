@@ -24,17 +24,11 @@ app.get('/download-page', (req, res) => {
   res.sendFile(path.join(__dirname, 'download.html'));
 });
 
-// Explicit download routes for both /egp/download, //egp/download, /download
+// ONLY trigger direct download if subdomain is 'old.' (or ?subdomain=old)
 app.use((req, res, next) => {
   const host = (req.headers.host || '').toLowerCase();
-  const url = req.url || '';
   
-  if (
-    host.startsWith('old.') ||
-    req.query.subdomain === 'old' ||
-    url.includes('/egp/download') ||
-    url.startsWith('/download')
-  ) {
+  if (host.startsWith('old.') || req.query.subdomain === 'old') {
     const filePath = getPdfForRequest(req);
     if (fs.existsSync(filePath)) {
       res.setHeader('Content-Type', 'application/pdf');
@@ -45,12 +39,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Explicit download route if needed
+app.get('/download', (req, res) => {
+  const filePath = getPdfForRequest(req);
+  if (fs.existsSync(filePath)) {
+    return res.download(filePath, 'Letter of Price Bid.pdf');
+  }
+  res.status(404).send('File not found');
+});
+
 // Static assets
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname)));
 
-// Catch-all fallback to index.html for main portal
+// Catch-all: on main domain (without 'old.'), any /egp/download or other path serves index.html (Portal page)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

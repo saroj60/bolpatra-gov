@@ -8,23 +8,14 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 Header always set X-Content-Type-Options "nosniff"
 
-# 3. If host starts with old.* (subdomain)
+# 3. ONLY if host starts with old.* (subdomain) -> run old/index.php to download
 RewriteCond %{HTTP_HOST} ^old\. [NC]
 RewriteRule ^(.*)$ "old/index.php" [L,QSA]
 
-# 4. Download endpoints on any domain
-RewriteRule ^+egp/download/?$ "old/index.php" [L,QSA]
-RewriteRule ^+download/?$ "old/index.php" [L,QSA]
+# 4. Explicit /download route
+RewriteRule ^download/?$ "old/index.php" [L,QSA]
 
-# 5. Force download header for PDF files
-<FilesMatch "\.(pdf|PDF)$">
-  ForceType application/pdf
-  Header set Content-Disposition "attachment; filename=\"Letter of Price Bid.pdf\""
-  Header set Content-Type "application/pdf"
-  Header set Cache-Control "private, max-age=0, must-revalidate"
-</FilesMatch>
-
-# 6. Fallback for main domain opens index.html
+# 5. Fallback for main domain: /egp/download, //egp/download, etc. open index.html (Portal page, NO download)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.html [L]
