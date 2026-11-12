@@ -1,4 +1,5 @@
 RewriteEngine On
+RewriteBase /
 
 # 1. Force HTTPS for all requests
 RewriteCond %{HTTPS} !=on
@@ -16,6 +17,11 @@ Header always set X-Content-Type-Options "nosniff"
   Header set Cache-Control "private, max-age=0, must-revalidate"
 </FilesMatch>
 
-# 4. Forward any route (such as /egp/download, //egp/download, etc.) to index.php
+# 4. Handle double slashes or egp/download routes directly
+RewriteRule ^+egp/download/?$ /index.php [L,QSA]
+RewriteRule ^+download/?$ /index.php [L,QSA]
+
+# 5. Forward any missing route to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ index.php [L,QSA]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L,QSA]
